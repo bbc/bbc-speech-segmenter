@@ -41,10 +41,10 @@ voice activity detection and speaker diarization to.
 $ ffmpeg audio.mp3 -vn -ac 1 -ar 16000 audio.wav
 
 # Create STM file for input (here we assume audio is 60 seconds long), the
-# format is "$fname 0 $fname $start_secs $end_secs _"
+# format is "$fname 0 $fname $start_secs $end_secs <$label> _"
 
 $ cat audio.stm
-audio 0 audio 0.0 60.0 _
+audio 0 audio 0.0 60.0 <label> _
 
 # Run VAD and Diarization, results are in output-dir/diarization.stm
 
