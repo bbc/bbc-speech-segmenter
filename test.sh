@@ -141,6 +141,16 @@ if [ ! -s "$tmp_dir/test.xvectors.ark" ]; then
     exit 1
 fi
 
+copy-vector ark:$tmp_dir/test.xvectors.ark \
+    ark,t:$tmp_dir/test.xvectors.ark.txt >/dev/null 2>&1
+
+num_xvectors=$( wc -l $tmp_dir/test.xvectors.ark.txt | awk '{print $1}' )
+
+if (( "$num_xvectors" != 38 )); then
+    echo "The number of x-vectors extracted doesn't match the expected"
+    exit 1
+fi
+
 # visualize
 
 echo "Checking local/xvector_utils.py visualize"
