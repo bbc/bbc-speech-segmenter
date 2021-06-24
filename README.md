@@ -13,8 +13,8 @@ Workshop (ASRU) and is currently under review as of June 2021.
 ## Quickstart
 
 ```
-$ docker pull bbcrdirfs/bbc-speech-segmenter
-$ docker run -it bbcrdirfs/bbc-speech-segmenter /bin/bash
+$ docker pull bbcrd/bbc-speech-segmenter
+$ docker run -it bbcrd/bbc-speech-segmenter /bin/bash
 $ ./run-segmentation.sh --help
 usage: run-segmentation.sh [options] input.wav input.stm output-dir
 
