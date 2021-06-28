@@ -162,7 +162,7 @@ $ python3 local/xvector_utils.py evaluate \
 The code for the baseline WebRTC system referenced in the paper is available in
 the directory [`recipe/baselines/denoising_DIHARD18_webrtc`](https://github.com/bbc/bbc-speech-segmenter/tree/main/recipe/baselines/denoising_DIHARD18_webrtc).
 
-## Request access to `bbc-vad-train` datasets
+## Request access to `bbc-vad-train`
 
 Due to size restriction, only [`bbc-vad-eval`](https://github.com/bbc/bbc-speech-segmenter/tree/main/recipe/data/bbc-vad-eval) is included in the repository. If you'd like access to `bbc-vad-train`, please contact [Matt Haynes](mailto:matt.haynes@bbc.co.uk?subject=[xvector-vad-for-stt]%20Request%20Access%20to%20Datasets).
 
