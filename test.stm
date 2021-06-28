@@ -1,2 +1,2 @@
-test 0 test 0 15 <label_one> _
-test 0 test 15 30 <label_two> _
+test 0 test 0.00 15.00 <label_one> _
+test 0 test 15.00 30.00 <label_two> _

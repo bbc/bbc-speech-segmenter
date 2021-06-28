@@ -14,8 +14,14 @@ Workshop (ASRU) and is currently under review as of June 2021.
 
 ```
 $ docker pull bbcrd/bbc-speech-segmenter
-$ docker run -it bbcrd/bbc-speech-segmenter /bin/bash
-$ ./run-segmentation.sh --help
+
+# Test
+
+$ docker run -w /wrk -v `pwd`:/wrk bbcrd/bbc-speech-segmenter ./test.sh
+
+# Segmentation help
+
+$ docker run bbcrd/bbc-speech-segmenter ./run-segmentation.sh --help
 usage: run-segmentation.sh [options] input.wav input.stm output-dir
 
 options:
@@ -29,45 +35,88 @@ options:
                            Default: individual
   --no-vad                 Skip xvector vad stages. Default: false
   --help                   Print this message
+
+# Run segmentation (VAD + diarisation), results are in output-dir/diarize.stm
+
+$ docker run -v `pwd`:/data bbcrd/bbc-speech-segmenter \
+  ./run-segmentation.sh /data/audio.wav /data/audio.stm /data/output-dir
+
+$ cat output-dir/diarize.stm
+audio 0 audio_S00004 3.750 10.125 <speech>
+audio 0 audio_S00003 10.125 13.687 <speech>
+audio 0 audio_S00004 13.688 16.313 <speech>
+...
+
+# Train x-vector classifier
+
+$ docker run -w /wrk/recipe -v `pwd`:/wrk bbcrd/bbc-speech-segmenter \
+  local/xvector_utils.py data/bbc-vad-train/reference.stm            \
+  data/bbc-vad-train/xvectors.ark new_model.pkl
+
+# Evaluate x-vector classifier
+
+$ docker run -w /wrk/recipe -v `pwd`:/wrk bbcrd/bbc-speech-segmenter \
+  local/xvector_utils.py evaluate data/bbc-vad-eval/reference.stm    \
+  data/bbc-vad-eval/xvectors.ark model/xvector-classifier.pkl
 ```
+
+### Audio & STM file format
 
 In order to run the segmentation script you need your audio in **16Khz Mono WAV**
 format. You also need an STM file describing the segments you want to apply
 voice activity detection and speaker diarization to.
+
+For more information on the STM file format see [`XVECTOR_UTILS.md`](https://github.com/bbc/bbc-speech-segmenter/blob/main/XVECTOR_UTILS.md#labelsstm).
 
 ```
 # Convert audio file to 16Khz mono wav
 
 $ ffmpeg audio.mp3 -vn -ac 1 -ar 16000 audio.wav
 
-# Create STM file for input (here we assume audio is 60 seconds long), the
-# format is "$fname 0 $fname $start_secs $end_secs <$label> _"
+# Create STM file for input
+
+$ DURATION=$(ffprobe -i audio.wav -show_entries format=duration -v quiet -of csv="p=0")
+$ DURATION=$(printf "%0.2f\n" $DURATION)
+
+$ FILENAME=$(basename audio.wav)
+
+$ echo "${FILENAME%.*} 0 ${FILENAME%.*} 0.00 $DURATION <label> _" > audio.stm
 
 $ cat audio.stm
-audio 0 audio 0.0 60.0 <label> _
-
-# Run VAD and Diarization, results are in output-dir/diarization.stm
-
-$ ./run-segmentation.sh audio.wav audio.stm output-dir
-ls output-dir/diarization.stm
+audio 0 audio 0.00 60.00 <label> _
 ```
 
-## Developers
+## Use Docker image to run code in local checkout
 
-### Build Docker image
+```
+# Bulid Docker image
 
-```terminal
 $ docker build -t bbc-speech-segmenter .
-```
 
-### Use Docker image to run code in local checkout
+# Spin up a Docker container in an interactive mode
 
-```terminal
 $ docker run -it -v `pwd`:/wrk bbc-speech-segmenter /bin/bash
+
+# Inside a Docker container
+
 $ cd /wrk/
+
+# Run test
+
 $ ./test.sh
 All checks passed
 ```
+
+## Training and evaluation
+
+### X-vector utility
+
+`xvector_utils.py` can be used to train and evaluate x-vector classifier, as
+well as o extract and visualize x-vectors. For more detailed information, see
+[`XVECTOR_UTILS.md`](https://github.com/bbc/bbc-speech-segmenter/blob/main/XVECTOR_UTILS.md).
+
+The documentation also gives [details on file formats](https://github.com/bbc/bbc-speech-segmenter/blob/main/XVECTOR_UTILS.md#input-files)
+such as ARK, SCP or STM, which are required to use this tool.
 
 ### Run x-vector VAD training
 
@@ -78,7 +127,7 @@ Two files are required for x-vector-vad training:
 
 For example, from inside the Docker container:
 
-```termiinal
+```
 $ cd /wrk/recipe
 
 $ python3 local/xvector_utils.py train \
@@ -99,7 +148,7 @@ Three files are needed in order to run VAD evaluation:
 
 For example, from inside the Docker container:
 
-```termiinal
+```
 $ cd /wrk/recipe
 
 $ python3 local/xvector_utils.py evaluate \
@@ -108,22 +157,14 @@ $ python3 local/xvector_utils.py evaluate \
   model/xvector-classifier.pkl
 ```
 
-### X-vector utility
-
-`xvector_utils.py` can be also used to extract and visualize x-vectors. For
-more detailed information, see `XVECTOR_UTILS.md`.
-
 ### WebRTC baseline
 
 The code for the baseline WebRTC system referenced in the paper is available in
-the directory `recipe/baselines/denoising_DIHARD18_webrtc`.
+the directory [`recipe/baselines/denoising_DIHARD18_webrtc`](https://github.com/bbc/bbc-speech-segmenter/tree/main/recipe/baselines/denoising_DIHARD18_webrtc).
 
-## Request access to x-vector datasets
+## Request access to `bbc-vad-train` datasets
 
-Due to size restriction, only `bbc-vad-eval` is included in the repository under `recipe/data`.
-
-If you'd like access to `bbe-vad-train` or other datasets mentioned in the paper,
-please contact [Matt Haynes](mailto:matt.haynes@bbc.co.uk?subject=[xvector-vad-for-stt]%20Request%20Access%20to%20Datasets).
+Due to size restriction, only [`bbc-vad-eval`](https://github.com/bbc/bbc-speech-segmenter/tree/main/recipe/data/bbc-vad-eval) is included in the repository. If you'd like access to `bbc-vad-train`, please contact [Matt Haynes](mailto:matt.haynes@bbc.co.uk?subject=[xvector-vad-for-stt]%20Request%20Access%20to%20Datasets).
 
 ## Authors
 
