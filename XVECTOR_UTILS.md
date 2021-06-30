@@ -6,9 +6,8 @@ This is a quick guide for using x-vector utility tool (`recipe/local/xvector_uti
 
 - Kaldi (for extracting x-vectors)
 - Python 3.5+
-- numpy==1.16.1
-- plotly==4.8.1
-- scikit-learn==0.21.2
+
+For Python package dependencies, see `requirements.txt`.
 
 ## Usage
 
