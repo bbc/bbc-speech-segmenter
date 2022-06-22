@@ -2,7 +2,7 @@ docopt==0.6.2
 flake8==3.9.2
 kaldi-io==0.9.4
 matplotlib==3.0.3
-numpy==1.16.1
+numpy==1.22.0
 pandas==0.25.3
 plotly==4.8.1
 scikit-learn==0.21.2
